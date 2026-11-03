@@ -1,5 +1,7 @@
 package com.adish.grahaksensemono.seller.service.Impl;
 
+import com.adish.grahaksensemono.product.Dto.ProductResponseDto;
+import com.adish.grahaksensemono.product.service.ProductService;
 import com.adish.grahaksensemono.seller.Dto.SellerRequestDto;
 import com.adish.grahaksensemono.seller.Dto.SellerResponseDto;
 import com.adish.grahaksensemono.seller.Dto.UpdateSellerDto;
@@ -8,7 +10,9 @@ import com.adish.grahaksensemono.seller.entity.Seller;
 import com.adish.grahaksensemono.seller.repository.SellerRepository;
 import com.adish.grahaksensemono.seller.service.SellerService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,9 +22,13 @@ public class SellerServiceImpl implements SellerService {
     private SellerRepository sellerRepository;
 
     private SellerMapper sellerMapper;
-    public SellerServiceImpl(SellerRepository sellerRepository, SellerMapper sellerMapper){
+
+    private ProductService productService;
+
+    public SellerServiceImpl(SellerRepository sellerRepository, SellerMapper sellerMapper, ProductService productService){
         this.sellerRepository = sellerRepository;
         this.sellerMapper = sellerMapper;
+        this.productService = productService;
     }
 
     @Override
@@ -61,6 +69,7 @@ public class SellerServiceImpl implements SellerService {
             }
 
             if(change){
+                seller.setUpdatedAt(LocalDateTime.now());
                 sellerRepository.save(seller);
             }
 
@@ -92,11 +101,18 @@ public class SellerServiceImpl implements SellerService {
         return sellerResponseDtoList;
     }
 
+    @Transactional
     @Override
-    public boolean deleteSellerById(Long SellerId) {
-        if(sellerRepository.existsById(SellerId)){
-            sellerRepository.deleteById(SellerId);
-            return true;
+    public boolean deleteSellerById(Long sellerId) {
+        if(sellerRepository.existsById(sellerId)){
+            try {
+                List<ProductResponseDto> productById = productService.getAllProductByUserId(sellerId);
+                productById.stream().forEach(productResponseDto -> productService.deleteProductById(productResponseDto.getId()));
+                sellerRepository.deleteById(sellerId);
+                return true;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
         return false;
     }

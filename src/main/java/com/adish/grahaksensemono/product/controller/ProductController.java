@@ -46,6 +46,12 @@ public class ProductController {
         return new ResponseEntity<>(productResponseDtoList,HttpStatus.OK);
     }
 
+    @GetMapping("/{sellerId}")
+    private ResponseEntity<ProductResponseDto> getAllProductOfSeller(@PathVariable Long sellerId){
+        ProductResponseDto productById = productService.getProductById(sellerId);
+        return new ResponseEntity<>(productById, HttpStatus.OK);
+    }
+
     @PutMapping("/update")
     public ResponseEntity<ProductResponseDto> updateProduct(@RequestBody UpdateProductRequestDto productRequestDto){
         ProductResponseDto productResponseDto = productService.updateProduct(productRequestDto);

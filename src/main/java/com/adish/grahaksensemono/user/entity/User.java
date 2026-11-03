@@ -10,7 +10,10 @@ import java.util.List;
 import java.util.Set;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", indexes = {
+        @Index(name = "userName", columnList = "userName"),
+        @Index(name = "email", columnList = "email")
+})
 @Data
 public class User {
 

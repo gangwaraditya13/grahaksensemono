@@ -10,6 +10,7 @@ import com.adish.grahaksensemono.product.service.ProductService;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -74,6 +75,8 @@ public class ProductServiceImpl implements ProductService {
             }
 
             if(update){
+                product.setUpdatedAt(LocalDateTime.now());
+                productRepository.save(product);
                 ProductResponseDto productResponseDto = productMapper.productToProductResponseDto(product);
                 return productResponseDto;
             }
@@ -93,10 +96,24 @@ public class ProductServiceImpl implements ProductService {
         return null;
     }
 
+
+
     @Override
     public List<ProductResponseDto> getAllProduct() {
         List<Product> productList = productRepository.findAll();
         List<ProductResponseDto> productResponseDtoList = productList
+                .stream()
+                .map(product -> productMapper.productToProductResponseDto(product))
+                .collect(Collectors.toList());
+        return productResponseDtoList;
+    }
+
+    @Override
+    public List<ProductResponseDto> getAllProductByUserId(Long sellerId) {
+
+        List<Product> bySellerId = productRepository.findBySellerId(sellerId);
+
+        List<ProductResponseDto> productResponseDtoList = bySellerId
                 .stream()
                 .map(product -> productMapper.productToProductResponseDto(product))
                 .collect(Collectors.toList());
