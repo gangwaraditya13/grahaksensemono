@@ -17,7 +17,7 @@ public class Seller {
     @Column(nullable = false)
     private Long userId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String companyName;
 
     @Column(nullable = false)

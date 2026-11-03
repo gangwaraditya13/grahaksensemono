@@ -31,15 +31,45 @@ public class SellerServiceImpl implements SellerService {
             SellerResponseDto sellerResponseDto = sellerMapper.sellerToSellerResponseDto(save);
             return sellerResponseDto;
         }catch (Exception e){
-            throw new RuntimeException("seller not created : "+e.getMessage());
+//            throw new RuntimeException("seller not created : "+e.getMessage());
+            return null;
         }
     }
 
-    //todo: make update logic
     @Override
     public SellerResponseDto updateSeller(UpdateSellerDto updateSellerDto) {
+        try {
+            Seller seller = sellerRepository.findByCompanyName(updateSellerDto.getCompanyName()).orElseThrow();
+            boolean change = false;
+            if(!updateSellerDto.getCompanyName().trim().equals("")
+                    && updateSellerDto.getCompanyName() != null
+                    && !updateSellerDto.getCompanyName().trim().equals(seller.getCompanyName())){
+                seller.setCompanyName(updateSellerDto.getCompanyName());
+                change = true;
+            }
+            if(!updateSellerDto.getBusinessAddress().trim().equals("")
+                    && updateSellerDto.getBusinessAddress() != null
+                    && !updateSellerDto.getBusinessAddress().trim().equals(seller.getBusinessAddress())){
+                seller.setBusinessAddress(updateSellerDto.getBusinessAddress());
+                change = true;
+            }
+            if(!updateSellerDto.getBusinessPhone().trim().equals("")
+                    && updateSellerDto.getBusinessPhone() != null
+                    && !updateSellerDto.getBusinessPhone().trim().equals(seller.getBusinessPhone())){
+                seller.setBusinessPhone(updateSellerDto.getBusinessPhone());
+                change = true;
+            }
 
-        return null;
+            if(change){
+                sellerRepository.save(seller);
+            }
+
+            return sellerMapper.sellerToSellerResponseDto(seller);
+
+        }catch(Exception e){
+            return null;
+        }
+
     }
 
     @Override
