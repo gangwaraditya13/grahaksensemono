@@ -12,6 +12,7 @@ import com.adish.grahaksensemono.seller.repository.SellerRepository;
 import com.adish.grahaksensemono.seller.service.SellerService;
 import com.adish.grahaksensemono.user.entity.User;
 import com.adish.grahaksensemono.user.service.UserService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +31,7 @@ public class SellerServiceImpl implements SellerService {
 
     private UserService userService;
 
-    public SellerServiceImpl(SellerRepository sellerRepository, SellerMapper sellerMapper, ProductService productService, UserService userService){
+    public SellerServiceImpl(SellerRepository sellerRepository, SellerMapper sellerMapper, ProductService productService, @Lazy UserService userService){
         this.sellerRepository = sellerRepository;
         this.sellerMapper = sellerMapper;
         this.productService = productService;
