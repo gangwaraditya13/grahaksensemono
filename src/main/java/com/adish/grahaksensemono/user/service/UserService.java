@@ -1,5 +1,7 @@
 package com.adish.grahaksensemono.user.service;
 
+import com.adish.grahaksensemono.user.Dto.Password.ForgotPasswordRequestDto;
+import com.adish.grahaksensemono.user.Dto.Password.ResetPasswordRequestDto;
 import com.adish.grahaksensemono.user.Dto.UserDeleteRequestDto;
 import com.adish.grahaksensemono.user.Dto.UpdateUserRequestDto;
 import com.adish.grahaksensemono.user.Dto.UserRequestDto;
@@ -23,4 +25,10 @@ public interface UserService {
     User getUserByUserId(Long userId);
 
     void upgradeUserToSeller(Long userId);
+
+    void upgradeUserToAnalyst(Long userId);
+
+    void forgetPassword(ForgotPasswordRequestDto forgotPasswordRequestDto);
+
+    void resetPassword(ResetPasswordRequestDto resetPasswordRequestDto);
 }

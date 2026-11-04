@@ -114,7 +114,7 @@ public class SellerServiceImpl implements SellerService {
         if(sellerRepository.existsById(deleteRequestDto.getUserId())){
             try {
                 User userByUserId = userService.getUserByUserId(deleteRequestDto.getUserId());
-                if(userByUserId.getPassword().equals(deleteRequestDto.getPassword())) {
+                if(userByUserId.getPassword().matches(deleteRequestDto.getPassword())) {
                     List<ProductResponseDto> productById = productService.getAllProductByUserId(deleteRequestDto.getUserId());
                     productById.stream().forEach(productResponseDto -> productService.deleteProductById(productResponseDto.getId()));
                     sellerRepository.deleteById(deleteRequestDto.getUserId());

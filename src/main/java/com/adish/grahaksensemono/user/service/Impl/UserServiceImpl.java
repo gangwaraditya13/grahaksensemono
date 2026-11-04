@@ -16,6 +16,8 @@ import com.adish.grahaksensemono.user.repository.OtpRepository;
 import com.adish.grahaksensemono.user.repository.UserRepository;
 import com.adish.grahaksensemono.user.service.EmailService;
 import com.adish.grahaksensemono.user.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +31,8 @@ public class UserServiceImpl implements UserService {
 
     private UserRepository userRepository;
 
-    /// after spring security inject PASSWORDBECRIPT
+    @Autowired
+    private PasswordEncoder PASSWORD_ENCODER;
 
     private UserMapper userMapper;
 
@@ -53,8 +56,9 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByuserName(userRequestDto.getUserName()).orElse(null);
         if(user == null){
             User user1 = userMapper.userRequestToUser(userRequestDto);
-            /// Incript
-            user1.setPassword(userRequestDto.getPassword());
+
+            String encodePassword = PASSWORD_ENCODER.encode(userRequestDto.getPassword());
+            user1.setPassword(encodePassword);
 
             userRepository.save(user1);
 
@@ -146,7 +150,7 @@ public class UserServiceImpl implements UserService {
             if(userRepository.existsById(deleteRequestDto.getUserId())){
                 User user = userRepository.findById(deleteRequestDto.getUserId()).orElseThrow();
 
-                if(user.getPassword().equals(deleteRequestDto.getPassword())) {
+                if(user.getPassword().matches(deleteRequestDto.getPassword())) {
 
                     boolean isSeller = user.getRoles().stream().anyMatch(role -> role.equals(Role.SELLER));
                     if (isSeller) {
@@ -210,12 +214,14 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("Invalid OTP");
         }
 
-        String encodedPassword = newPassword;
+        String encodedPassword = PASSWORD_ENCODER.encode(newPassword);
 
         User user = userRepository.findByuserName(userName).orElse(null);
         if(user!=null) {
             user.setPassword(encodedPassword);
             userRepository.save(user);
+        }else{
+            throw new RuntimeException("User not Found");
         }
 
         otpRepository.delete(otpToken);
@@ -233,6 +239,13 @@ public class UserServiceImpl implements UserService {
     public void upgradeUserToSeller(Long userId) {
         User userByUserId = getUserByUserId(userId);
         userByUserId.getRoles().add(Role.SELLER);
+        userRepository.save(userByUserId);
+    }
+
+    @Override
+    public void upgradeUserToAnalyst(Long userId) {
+        User userByUserId = getUserByUserId(userId);
+        userByUserId.getRoles().add(Role.ANALYST);
         userRepository.save(userByUserId);
     }
 }
