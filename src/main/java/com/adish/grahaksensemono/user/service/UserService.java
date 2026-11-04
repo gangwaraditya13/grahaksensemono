@@ -1,8 +1,10 @@
 package com.adish.grahaksensemono.user.service;
 
+import com.adish.grahaksensemono.user.Dto.UserDeleteRequestDto;
 import com.adish.grahaksensemono.user.Dto.UpdateUserRequestDto;
 import com.adish.grahaksensemono.user.Dto.UserRequestDto;
 import com.adish.grahaksensemono.user.Dto.UserResponseDto;
+import com.adish.grahaksensemono.user.entity.User;
 
 import java.util.List;
 
@@ -16,6 +18,9 @@ public interface UserService {
 
     UserResponseDto getUserByUserName(String userName);
 
-    boolean userDeleteById(Long userId);
+    boolean userDeleteById(UserDeleteRequestDto deleteRequestDto);
 
+    User getUserByUserId(Long userId);
+
+    void upgradeUserToSeller(Long userId);
 }

@@ -1,5 +1,6 @@
 package com.adish.grahaksensemono.seller.controller;
 
+import com.adish.grahaksensemono.seller.Dto.SellerDeleteRequestDto;
 import com.adish.grahaksensemono.seller.Dto.SellerRequestDto;
 import com.adish.grahaksensemono.seller.Dto.SellerResponseDto;
 import com.adish.grahaksensemono.seller.Dto.UpdateSellerDto;
@@ -20,7 +21,7 @@ public class SellerController {
         this.sellerService = sellerService;
     }
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<SellerResponseDto> createSeller(@RequestBody SellerRequestDto sellerRequestDto){
         SellerResponseDto seller = sellerService.createSeller(sellerRequestDto);
         if(seller != null){
@@ -30,7 +31,7 @@ public class SellerController {
         }
     }
 
-    @PostMapping
+    @PutMapping("/update")
     public ResponseEntity<SellerResponseDto> updateSeller(@RequestBody UpdateSellerDto updateSellerDto){
         SellerResponseDto sellerResponseDto = sellerService.updateSeller(updateSellerDto);
         if(sellerResponseDto != null){
@@ -57,9 +58,9 @@ public class SellerController {
         return new ResponseEntity<>(allSellers, HttpStatus.OK);
     }
 
-    @DeleteMapping("/{sellerId}")
-    public ResponseEntity<?> deleteSeller(@PathVariable Long sellerId){
-        boolean deleteSellerById = sellerService.deleteSellerById(sellerId);
+    @PostMapping
+    public ResponseEntity<?> deleteSeller(@RequestBody SellerDeleteRequestDto deleteRequestDto){
+        boolean deleteSellerById = sellerService.deleteSellerById(deleteRequestDto);
 
         if(deleteSellerById){
             return new ResponseEntity<>(HttpStatus.OK);

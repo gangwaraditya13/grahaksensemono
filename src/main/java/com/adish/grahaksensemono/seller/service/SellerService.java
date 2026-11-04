@@ -1,5 +1,6 @@
 package com.adish.grahaksensemono.seller.service;
 
+import com.adish.grahaksensemono.seller.Dto.SellerDeleteRequestDto;
 import com.adish.grahaksensemono.seller.Dto.SellerRequestDto;
 import com.adish.grahaksensemono.seller.Dto.SellerResponseDto;
 import com.adish.grahaksensemono.seller.Dto.UpdateSellerDto;
@@ -16,6 +17,6 @@ public interface SellerService{
 
     List<SellerResponseDto> getAllSellers();
 
-    boolean deleteSellerById(Long SellerId);
+    boolean deleteSellerById(SellerDeleteRequestDto deleteRequestDto);
 
 }

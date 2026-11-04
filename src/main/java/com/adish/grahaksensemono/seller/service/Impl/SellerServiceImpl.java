@@ -2,6 +2,7 @@ package com.adish.grahaksensemono.seller.service.Impl;
 
 import com.adish.grahaksensemono.product.Dto.ProductResponseDto;
 import com.adish.grahaksensemono.product.service.ProductService;
+import com.adish.grahaksensemono.seller.Dto.SellerDeleteRequestDto;
 import com.adish.grahaksensemono.seller.Dto.SellerRequestDto;
 import com.adish.grahaksensemono.seller.Dto.SellerResponseDto;
 import com.adish.grahaksensemono.seller.Dto.UpdateSellerDto;
@@ -9,6 +10,8 @@ import com.adish.grahaksensemono.seller.Mapper.SellerMapper;
 import com.adish.grahaksensemono.seller.entity.Seller;
 import com.adish.grahaksensemono.seller.repository.SellerRepository;
 import com.adish.grahaksensemono.seller.service.SellerService;
+import com.adish.grahaksensemono.user.entity.User;
+import com.adish.grahaksensemono.user.service.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,16 +28,20 @@ public class SellerServiceImpl implements SellerService {
 
     private ProductService productService;
 
-    public SellerServiceImpl(SellerRepository sellerRepository, SellerMapper sellerMapper, ProductService productService){
+    private UserService userService;
+
+    public SellerServiceImpl(SellerRepository sellerRepository, SellerMapper sellerMapper, ProductService productService, UserService userService){
         this.sellerRepository = sellerRepository;
         this.sellerMapper = sellerMapper;
         this.productService = productService;
+        this.userService = userService;
     }
 
     @Override
     public SellerResponseDto createSeller(SellerRequestDto sellerRequestDto) {
         Seller seller = sellerMapper.sellerRequestDtoToSeller(sellerRequestDto);
         try{
+            userService.upgradeUserToSeller(sellerRequestDto.getUserId());
             Seller save = sellerRepository.save(seller);
             SellerResponseDto sellerResponseDto = sellerMapper.sellerToSellerResponseDto(save);
             return sellerResponseDto;
@@ -103,13 +110,18 @@ public class SellerServiceImpl implements SellerService {
 
     @Transactional
     @Override
-    public boolean deleteSellerById(Long sellerId) {
-        if(sellerRepository.existsById(sellerId)){
+    public boolean deleteSellerById(SellerDeleteRequestDto deleteRequestDto) {
+        if(sellerRepository.existsById(deleteRequestDto.getUserId())){
             try {
-                List<ProductResponseDto> productById = productService.getAllProductByUserId(sellerId);
-                productById.stream().forEach(productResponseDto -> productService.deleteProductById(productResponseDto.getId()));
-                sellerRepository.deleteById(sellerId);
-                return true;
+                User userByUserId = userService.getUserByUserId(deleteRequestDto.getUserId());
+                if(userByUserId.getPassword().equals(deleteRequestDto.getPassword())) {
+                    List<ProductResponseDto> productById = productService.getAllProductByUserId(deleteRequestDto.getUserId());
+                    productById.stream().forEach(productResponseDto -> productService.deleteProductById(productResponseDto.getId()));
+                    sellerRepository.deleteById(deleteRequestDto.getUserId());
+                    return true;
+                }else{
+                    return false;
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
