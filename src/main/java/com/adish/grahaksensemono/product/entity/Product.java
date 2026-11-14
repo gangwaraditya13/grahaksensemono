@@ -5,7 +5,9 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -32,7 +34,8 @@ public class Product {
     private BigDecimal adminDiscount;
 
     @ElementCollection
-    private Set<String> imageUrl = new HashSet<>();
+    @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))
+    private List<ImageData> images = new ArrayList<>();
 
     private LocalDateTime createdAt;
 

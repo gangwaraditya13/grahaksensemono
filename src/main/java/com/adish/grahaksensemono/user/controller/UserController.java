@@ -1,5 +1,6 @@
 package com.adish.grahaksensemono.user.controller;
 
+import com.adish.grahaksensemono.product.service.Impl.S3FileService;
 import com.adish.grahaksensemono.user.Dto.UpdateUserRequestDto;
 import com.adish.grahaksensemono.user.Dto.UserDeleteRequestDto;
 import com.adish.grahaksensemono.user.Dto.UserRequestDto;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/user")
@@ -17,8 +19,11 @@ public class UserController {
 
     private UserService userService;
 
-    public UserController(UserService userService) {
+    private S3FileService s3FileService;
+
+    public UserController(UserService userService, S3FileService s3FileService) {
         this.userService = userService;
+        this.s3FileService = s3FileService;
     }
 
     /// signup user
@@ -70,6 +75,13 @@ public class UserController {
         else{
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+    }
+
+
+    // READ: key -> public CloudFront URL
+    @GetMapping("/url")
+    public ResponseEntity<Map<String, String>> getUrl(@RequestParam String key) {
+        return ResponseEntity.ok(Map.of("url", s3FileService.getUrl(key)));
     }
 
 }

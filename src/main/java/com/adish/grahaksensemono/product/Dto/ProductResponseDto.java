@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -21,7 +22,7 @@ public class ProductResponseDto {
     private BigDecimal price;
     private BigDecimal discount;
     private BigDecimal adminDiscount;
-    private Set<String> imageUrl = new HashSet<>();
+    private List<String> imageUrls;      // built from keys via CloudFront
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

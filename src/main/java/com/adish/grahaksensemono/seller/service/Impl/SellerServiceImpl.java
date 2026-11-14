@@ -119,6 +119,7 @@ public class SellerServiceImpl implements SellerService {
                     List<ProductResponseDto> productById = productService.getAllProductByUserId(deleteRequestDto.getUserId());
                     productById.stream().forEach(productResponseDto -> productService.deleteProductById(productResponseDto.getId()));
                     sellerRepository.deleteById(deleteRequestDto.getUserId());
+                    userByUserId.getRoles().remove(RoleFor.SELLER);
                     return true;
                 }else{
                     return false;

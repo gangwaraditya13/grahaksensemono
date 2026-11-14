@@ -19,8 +19,6 @@ public interface ProductService {
 
     List<ProductResponseDto> getAllProductByUserId(Long sellerId);
 
-    //todo: add image url by adding image server service
-
     //todo: add pagination letter
 
     boolean deleteProductById(Long productId);

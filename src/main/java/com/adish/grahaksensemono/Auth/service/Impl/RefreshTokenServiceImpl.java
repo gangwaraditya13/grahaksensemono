@@ -13,7 +13,7 @@ import java.util.UUID;
 @Service
 public class RefreshTokenServiceImpl implements RefreshTokenService {
 
-    @Value("${app.jwt.refresh-expiration-ms}")
+    @Value("${app.jwt.refresh-expiration-ms")
     private long refreshExpirationMs;
 
     private final RefreshTokenRepository repo;

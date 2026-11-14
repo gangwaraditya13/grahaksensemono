@@ -19,10 +19,10 @@ public class JwtUtil {
 
     private UserDetailServiceImpl userDetailService;
 
-    @Value("${JWT_SECRET_KEY}")
+    @Value("${app.jwt.access.key}")
     private String secretKey;
 
-    @Value("${app.jwt.access-expiration-ms}")
+    @Value("${app.jwt.access-expiration-ms")
     private Long jwtExpiration;
 
     public JwtUtil(UserDetailServiceImpl userDetailService) {

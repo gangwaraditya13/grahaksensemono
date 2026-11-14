@@ -73,7 +73,7 @@ public class SpringSecurity {
                         .requestMatchers(
                                 "/seller/**",
                                 "/product/**"
-                        ).hasRole(Roles.SELLER.toString())
+                        ).hasAnyRole(Roles.SELLER.toString(), Roles.ADMIN.toString())
                         .requestMatchers("/activity/**")
                         .hasAnyRole(Roles.ANALYST.toString(), Roles.ADMIN.toString())
                         .requestMatchers(

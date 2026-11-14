@@ -6,39 +6,40 @@ import com.adish.grahaksensemono.product.entity.Product;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 
 @Component
 public class ProductMapper {
 
-    public static Product productRequestToProduct(ProductRequestDto productRequestDto){
+    public Product productRequestToProduct(ProductRequestDto dto) {
         Product product = new Product();
 
-        product.setProductName(productRequestDto.getProductName().trim());
-        product.setProductDescription(productRequestDto.getProductDescription().trim());
-        product.setDiscount(productRequestDto.getDiscount());
-        product.setPrice(productRequestDto.getPrice());
-        product.setSellerId(productRequestDto.getSellerId());
+        product.setProductName(dto.getProductName().trim());
+        product.setProductDescription(
+                dto.getProductDescription() == null ? null : dto.getProductDescription().trim());
+        product.setDiscount(dto.getDiscount());
+        product.setPrice(dto.getPrice());
+        product.setSellerId(dto.getSellerId());
         product.setCreatedAt(LocalDateTime.now());
+        // images are NOT mapped here: the service verifies the keys in S3 and sets them
 
         return product;
-
     }
 
-    public static ProductResponseDto productToProductResponseDto(Product product){
-        ProductResponseDto productResponseDto = new ProductResponseDto();
+    public ProductResponseDto productToProductResponseDto(Product product) {
+        ProductResponseDto dto = new ProductResponseDto();
 
-        productResponseDto.setId(product.getId());
-        productResponseDto.setProductName(product.getProductName());
-        productResponseDto.setProductDescription(product.getProductDescription());
-        productResponseDto.setPrice(product.getPrice());
-        productResponseDto.setDiscount(product.getDiscount());
-        productResponseDto.setImageUrl(product.getImageUrl());
-        productResponseDto.setSellerId(product.getSellerId());
-        productResponseDto.setAdminDiscount(product.getAdminDiscount());
-        productResponseDto.setCreatedAt(product.getCreatedAt());
-        productResponseDto.setUpdatedAt(product.getUpdatedAt());
+        dto.setId(product.getId());
+        dto.setProductName(product.getProductName());
+        dto.setProductDescription(product.getProductDescription());
+        dto.setPrice(product.getPrice());
+        dto.setDiscount(product.getDiscount());
+        dto.setAdminDiscount(product.getAdminDiscount());
+        dto.setSellerId(product.getSellerId());
+        dto.setCreatedAt(product.getCreatedAt());
+        dto.setUpdatedAt(product.getUpdatedAt());
+        dto.setImageUrls(new ArrayList<>());   // the service fills this with CloudFront URLs
 
-        return productResponseDto;
+        return dto;
     }
-
 }
