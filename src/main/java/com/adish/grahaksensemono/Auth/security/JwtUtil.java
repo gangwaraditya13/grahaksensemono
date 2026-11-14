@@ -22,7 +22,7 @@ public class JwtUtil {
     @Value("${app.jwt.access.key}")
     private String secretKey;
 
-    @Value("${app.jwt.access-expiration-ms")
+    @Value("${app.jwt.access-expiration-ms}")
     private Long jwtExpiration;
 
     public JwtUtil(UserDetailServiceImpl userDetailService) {
