@@ -39,7 +39,7 @@ public class openApiConfig {
                                 .url("https://www.apache.org/licenses/LICENSE-2.0"))
                 )
                 .servers(List.of(
-                        new Server().url("https://grahaksenseAWS").description("Production Server"),
+                        new Server().url("https://grahaksensemono.onrender.com").description("Production Server"),
                         new Server().url("http://localhost:8080/grahaksense").description("Local Server")
                 ));
     }
