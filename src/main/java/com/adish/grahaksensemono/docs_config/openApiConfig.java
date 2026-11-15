@@ -40,7 +40,7 @@ public class openApiConfig {
                 )
                 .servers(List.of(
                         new Server().url("https://grahaksensemono.onrender.com").description("Production Server"),
-                        new Server().url("http://localhost:8080/grahaksense").description("Local Server")
+                        new Server().url("http://localhost:8080").description("Local Server")
                 ));
     }
 }
