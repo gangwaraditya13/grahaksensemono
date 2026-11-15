@@ -67,7 +67,7 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/fotget/password")
+    @PostMapping("/forget/password")
     public ResponseEntity<?> forgetPassword(@RequestBody ForgotPasswordRequestDto forgotPasswordRequestDto){
         userService.forgetPassword(forgotPasswordRequestDto);
         return ResponseEntity.ok("email send");
