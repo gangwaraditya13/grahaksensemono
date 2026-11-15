@@ -16,13 +16,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthServiceImpl implements AuthService {
 
-    private AuthenticationManager authenticationManager;
-
-    private JwtUtil jwtUtil;
-
-    private UserDetailServiceImpl userDetailServiceImpl;
-
-    private RefreshTokenService refreshTokenService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil;
+    private final UserDetailServiceImpl userDetailServiceImpl;
+    private final RefreshTokenService refreshTokenService;
 
     public AuthServiceImpl(AuthenticationManager authenticationManager, JwtUtil jwtUtil, UserDetailServiceImpl userDetailServiceImpl, RefreshTokenService refreshTokenService) {
         this.authenticationManager = authenticationManager;
@@ -51,14 +48,17 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String refresh(RefreshTokenRequestDto refreshTokenRequestDto){
-
-        RefreshToken refreshToken = refreshTokenService.verify(refreshTokenRequestDto.getRefreshToken());
-        String userName = refreshToken.getUserName();
-        String newAccess = jwtUtil.generateAccessToken(userName);
-
-        return newAccess;
+    public String refresh(RefreshTokenRequestDto refreshTokenRequestDto) {
+        try {
+            if (refreshTokenRequestDto == null || refreshTokenRequestDto.getRefreshToken() == null) {
+                return null;
+            }
+            RefreshToken refreshToken = refreshTokenService.verify(refreshTokenRequestDto.getRefreshToken());
+            String userName = refreshToken.getUserName();
+            return jwtUtil.generateAccessToken(userName);
+        } catch (Exception e) {
+            return null;
+        }
     }
-
 
 }

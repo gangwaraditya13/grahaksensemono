@@ -1,3 +1,4 @@
+
 package com.adish.grahaksensemono.docs_config;
 
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
@@ -6,6 +7,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,15 +22,17 @@ import java.util.List;
         bearerFormat = "JWT"
 )
 public class openApiConfig {
+
     @Bean
     public OpenAPI customOpenAPI() {
+
         return new OpenAPI()
                 .info(new Info()
-                        .title("CityHub – Grahak Sense API")
+                        .title("Grahak Sense API")
                         .version("1.0.0")
                         .description(
-                                "CityHub is a centralized Grahak Sense providing APIs for " +
-                                        "cart services, auth services, product services, seller services, user services, administration, and public utilities."
+                                "Grahak Sense API for authentication, products, " +
+                                        "cart, sellers, users and administration."
                         )
                         .contact(new Contact()
                                 .name("Aditya Kumar")
@@ -38,9 +42,16 @@ public class openApiConfig {
                                 .name("Apache 2.0")
                                 .url("https://www.apache.org/licenses/LICENSE-2.0"))
                 )
+                .addSecurityItem(
+                        new SecurityRequirement().addList("bearerAuth")
+                )
                 .servers(List.of(
-                        new Server().url("https://grahaksensemono.onrender.com").description("Production Server"),
-                        new Server().url("http://localhost:8080").description("Local Server")
+                        new Server()
+                                .url("https://grahaksensemono.onrender.com")
+                                .description("Production Server"),
+                        new Server()
+                                .url("http://localhost:8080")
+                                .description("Local Server")
                 ));
     }
 }

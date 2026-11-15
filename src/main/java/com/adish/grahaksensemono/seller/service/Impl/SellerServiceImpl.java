@@ -13,6 +13,7 @@ import com.adish.grahaksensemono.seller.service.SellerService;
 import com.adish.grahaksensemono.user.entity.User;
 import com.adish.grahaksensemono.user.service.UserService;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,19 +24,18 @@ import java.util.stream.Collectors;
 @Service
 public class SellerServiceImpl implements SellerService {
 
-    private SellerRepository sellerRepository;
+    private final SellerRepository sellerRepository;
+    private final SellerMapper sellerMapper;
+    private final ProductService productService;
+    private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
 
-    private SellerMapper sellerMapper;
-
-    private ProductService productService;
-
-    private UserService userService;
-
-    public SellerServiceImpl(SellerRepository sellerRepository, SellerMapper sellerMapper, ProductService productService, @Lazy UserService userService){
+    public SellerServiceImpl(SellerRepository sellerRepository, SellerMapper sellerMapper, ProductService productService, @Lazy UserService userService, PasswordEncoder passwordEncoder){
         this.sellerRepository = sellerRepository;
         this.sellerMapper = sellerMapper;
         this.productService = productService;
         this.userService = userService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -115,11 +115,11 @@ public class SellerServiceImpl implements SellerService {
         if(sellerRepository.existsById(deleteRequestDto.getUserId())){
             try {
                 User userByUserId = userService.getUserByUserId(deleteRequestDto.getUserId());
-                if(userByUserId.getPassword().matches(deleteRequestDto.getPassword())) {
+                if(passwordEncoder.matches(deleteRequestDto.getPassword(), userByUserId.getPassword())) {
                     List<ProductResponseDto> productById = productService.getAllProductByUserId(deleteRequestDto.getUserId());
-                    productById.stream().forEach(productResponseDto -> productService.deleteProductById(productResponseDto.getId()));
+                    productById.forEach(productResponseDto -> productService.deleteProductById(productResponseDto.getId()));
                     sellerRepository.deleteById(deleteRequestDto.getUserId());
-                    userByUserId.getRoles().remove(RoleFor.SELLER);
+                    userService.demoteSeller(deleteRequestDto.getUserId());
                     return true;
                 }else{
                     return false;

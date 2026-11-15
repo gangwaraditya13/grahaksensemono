@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -20,9 +21,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SpringSecurity {
 
-    private JwtAuthFilter jwtAuthFilter;
-
-    private UserDetailServiceImpl userDetailService;
+    private final JwtAuthFilter jwtAuthFilter;
+    private final UserDetailServiceImpl userDetailService;
 
     public SpringSecurity(JwtAuthFilter jwtAuthFilter, UserDetailServiceImpl userDetailService) {
         this.jwtAuthFilter = jwtAuthFilter;
@@ -34,19 +34,15 @@ public class SpringSecurity {
         return new BCryptPasswordEncoder();
     }
 
-
     @Bean
     public AuthenticationProvider authenticationProvider(
             PasswordEncoder passwordEncoder) {
 
-        DaoAuthenticationProvider provider =
-                new DaoAuthenticationProvider(userDetailService);
-
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailService);
         provider.setPasswordEncoder(passwordEncoder);
 
         return provider;
     }
-
 
     @Bean
     public AuthenticationManager authenticationManager(
@@ -60,6 +56,8 @@ public class SpringSecurity {
             throws Exception {
 
         return http
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider(passwordEncoder()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
@@ -86,7 +84,6 @@ public class SpringSecurity {
                         jwtAuthFilter,
                         UsernamePasswordAuthenticationFilter.class
                 )
-                .csrf(AbstractHttpConfigurer::disable)
                 .build();
     }
 

@@ -4,7 +4,6 @@ import com.adish.grahaksensemono.Auth.Dto.JwtTokenResponseDto;
 import com.adish.grahaksensemono.Auth.Dto.RefreshTokenRequestDto;
 import com.adish.grahaksensemono.Auth.Dto.TokenResponseDto;
 import com.adish.grahaksensemono.Auth.Dto.UserLoginRequestDto;
-import com.adish.grahaksensemono.Auth.entity.RefreshToken;
 import com.adish.grahaksensemono.Auth.service.AuthService;
 import com.adish.grahaksensemono.Auth.service.RefreshTokenService;
 import com.adish.grahaksensemono.seller.Dto.SellerRequestDto;
@@ -14,7 +13,6 @@ import com.adish.grahaksensemono.user.Dto.Password.ForgotPasswordRequestDto;
 import com.adish.grahaksensemono.user.Dto.Password.ResetPasswordRequestDto;
 import com.adish.grahaksensemono.user.Dto.UserRequestDto;
 import com.adish.grahaksensemono.user.Dto.UserResponseDto;
-import com.adish.grahaksensemono.user.entity.User;
 import com.adish.grahaksensemono.user.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,14 +27,10 @@ import java.util.Map;
 @RequestMapping("/auth")
 public class AuthController {
 
-    private UserService userService;
-
-    private SellerService sellerService;
-
-    private AuthService authService;
-
-    private RefreshTokenService refreshTokenService;
-
+    private final UserService userService;
+    private final SellerService sellerService;
+    private final AuthService authService;
+    private final RefreshTokenService refreshTokenService;
 
     public AuthController(UserService userService, SellerService sellerService, AuthService authService, RefreshTokenService refreshTokenService) {
         this.userService = userService;
@@ -46,11 +40,11 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<UserResponseDto> createUser(@RequestBody UserRequestDto userRequestDto){
+    public ResponseEntity<UserResponseDto> createUser(@RequestBody UserRequestDto userRequestDto) {
         UserResponseDto user = userService.createUser(userRequestDto);
-        if(user != null){
+        if (user != null) {
             return new ResponseEntity<>(user, HttpStatus.CREATED);
-        }else{
+        } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
@@ -58,51 +52,55 @@ public class AuthController {
     /// flow: create User -> upgrade to seller(create seller)
 
     @PostMapping("/seller")
-    public ResponseEntity<SellerResponseDto> createSeller(@RequestBody SellerRequestDto sellerRequestDto){
+    public ResponseEntity<SellerResponseDto> createSeller(@RequestBody SellerRequestDto sellerRequestDto) {
         SellerResponseDto seller = sellerService.createSeller(sellerRequestDto);
-        if(seller != null){
+        if (seller != null) {
             return new ResponseEntity<>(seller, HttpStatus.CREATED);
-        }else{
+        } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
     @PostMapping("/forget/password")
-    public ResponseEntity<?> forgetPassword(@RequestBody ForgotPasswordRequestDto forgotPasswordRequestDto){
+    public ResponseEntity<?> forgetPassword(@RequestBody ForgotPasswordRequestDto forgotPasswordRequestDto) {
         userService.forgetPassword(forgotPasswordRequestDto);
         return ResponseEntity.ok("email send");
     }
 
     @PostMapping("/reset/password")
-    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequestDto resetPasswordRequestDto){
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequestDto resetPasswordRequestDto) {
         userService.resetPassword(resetPasswordRequestDto);
         return ResponseEntity.ok("successful");
     }
 
     @PostMapping("/login")
     public ResponseEntity<TokenResponseDto> login(
-            @RequestBody UserLoginRequestDto userLoginRequestDto){
+            @RequestBody UserLoginRequestDto userLoginRequestDto) {
 
         return ResponseEntity.ok(authService.loginToken(userLoginRequestDto));
     }
 
-    @PostMapping("/auth/refresh")
+    @PostMapping("/refresh")
     public ResponseEntity<?> refresh(@RequestBody RefreshTokenRequestDto refreshTokenRequestDto) {
         String newJwt = authService.refresh(refreshTokenRequestDto);
-        if(newJwt != null){
+        if (newJwt != null) {
             JwtTokenResponseDto jwtTokenResponseDto = new JwtTokenResponseDto();
             jwtTokenResponseDto.setJwtToken(newJwt);
             return ResponseEntity.ok(jwtTokenResponseDto);
-        }else{
+        } else {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
-
     }
 
-    @PostMapping("/auth/logout")
+    @PostMapping("/logout")
     public ResponseEntity<?> logout(@RequestBody Map<String, String> body) {
-        refreshTokenService.verify(body.get("refreshToken"));
-        refreshTokenService.deleteByToken(body.get("refreshToken"));
+        if (body == null || !body.containsKey("refreshToken")) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        String refreshToken = body.get("refreshToken");
+        if (refreshToken != null && !refreshToken.isBlank()) {
+            refreshTokenService.deleteByToken(refreshToken);
+        }
         return ResponseEntity.ok("Logged out");
     }
 }

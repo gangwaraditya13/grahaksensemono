@@ -26,6 +26,8 @@ public interface UserService {
 
     void upgradeUserToSeller(Long userId);
 
+    void demoteSeller(Long userId);
+
     void upgradeUserToAnalyst(Long userId);
 
     void forgetPassword(ForgotPasswordRequestDto forgotPasswordRequestDto);

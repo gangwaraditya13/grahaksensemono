@@ -16,7 +16,7 @@ import com.adish.grahaksensemono.user.repository.OtpRepository;
 import com.adish.grahaksensemono.user.repository.UserRepository;
 import com.adish.grahaksensemono.user.service.EmailService;
 import com.adish.grahaksensemono.user.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,21 +29,16 @@ import java.util.stream.Collectors;
 @Service
 public class UserServiceImpl implements UserService {
 
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
+    private final SellerService sellerService;
+    private final OtpRepository otpRepository;
+    private final EmailService emailService;
 
-    @Autowired
-    private PasswordEncoder PASSWORD_ENCODER;
-
-    private UserMapper userMapper;
-
-    private SellerService sellerService;
-
-    private OtpRepository otpRepository;
-
-    private EmailService emailService;
-
-    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper, SellerService sellerService, OtpRepository otpRepository, EmailService emailService) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, UserMapper userMapper, @Lazy SellerService sellerService, OtpRepository otpRepository, EmailService emailService) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
         this.userMapper = userMapper;
         this.sellerService = sellerService;
         this.otpRepository = otpRepository;
@@ -52,20 +47,22 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDto createUser(UserRequestDto userRequestDto) {
-
-        User user = userRepository.findByuserName(userRequestDto.getUserName()).orElse(null);
-        if(user == null){
-            User user1 = userMapper.userRequestToUser(userRequestDto);
-
-            String encodePassword = PASSWORD_ENCODER.encode(userRequestDto.getPassword());
-            user1.setPassword(encodePassword);
-
-            userRepository.save(user1);
-
-            return userMapper.userToUserResponseDto(user1);
+        if (userRequestDto == null || userRequestDto.getUserName() == null || userRequestDto.getPassword() == null) {
+            return null;
         }
 
-        return null;
+        if (userRepository.existsByuserName(userRequestDto.getUserName())
+                || (userRequestDto.getEmail() != null && userRepository.existsByEmail(userRequestDto.getEmail()))) {
+            return null;
+        }
+
+        User user1 = userMapper.userRequestToUser(userRequestDto);
+        String encodePassword = passwordEncoder.encode(userRequestDto.getPassword());
+        user1.setPassword(encodePassword);
+
+        userRepository.save(user1);
+
+        return userMapper.userToUserResponseDto(user1);
     }
 
     @Override
@@ -74,36 +71,36 @@ public class UserServiceImpl implements UserService {
             User user = userRepository.findByuserName(userRequestDto.getUserName()).orElseThrow();
             boolean change = false;
 
-            if(!userRequestDto.getName().trim().equals("")
-                    && userRequestDto.getName() != null
+            if(userRequestDto.getName() != null
+                    && !userRequestDto.getName().trim().isEmpty()
                     && !userRequestDto.getName().trim().equals(user.getName())){
                 user.setName(userRequestDto.getName());
                 change = true;
             }
 
-            if(!userRequestDto.getUserName().trim().equals("")
-                    && userRequestDto.getUserName() != null
+            if(userRequestDto.getUserName() != null
+                    && !userRequestDto.getUserName().trim().isEmpty()
                     && !userRequestDto.getUserName().trim().equals(user.getUserName())){
                 user.setUserName(userRequestDto.getUserName());
                 change = true;
             }
 
-            if(!userRequestDto.getEmail().trim().equals("")
-                    && userRequestDto.getEmail() != null
+            if(userRequestDto.getEmail() != null
+                    && !userRequestDto.getEmail().trim().isEmpty()
                     && !userRequestDto.getEmail().trim().equals(user.getEmail())){
                 user.setEmail(userRequestDto.getEmail());
                 change = true;
             }
 
-            if(!userRequestDto.getFullAddress().trim().equals("")
-                    && userRequestDto.getFullAddress() != null
+            if(userRequestDto.getFullAddress() != null
+                    && !userRequestDto.getFullAddress().trim().isEmpty()
                     && !userRequestDto.getFullAddress().trim().equals(user.getFullAddress())){
                 user.setFullAddress(userRequestDto.getFullAddress());
                 change = true;
             }
 
-            if(!userRequestDto.getPhone().trim().equals("")
-                    && userRequestDto.getPhone() != null
+            if(userRequestDto.getPhone() != null
+                    && !userRequestDto.getPhone().trim().isEmpty()
                     && !userRequestDto.getPhone().trim().equals(user.getPhone())){
                 user.setPhone(userRequestDto.getPhone());
                 change = true;
@@ -124,12 +121,10 @@ public class UserServiceImpl implements UserService {
     public List<UserResponseDto> getAllUsers() {
         List<User> userList = userRepository.findAll();
 
-        List<UserResponseDto> userResponseDtoList = userList
+        return userList
                 .stream()
-                .map(user -> userMapper.userToUserResponseDto(user))
+                .map(UserMapper::userToUserResponseDto)
                 .collect(Collectors.toList());
-
-        return userResponseDtoList;
     }
 
     @Override
@@ -141,8 +136,6 @@ public class UserServiceImpl implements UserService {
         return null;
     }
 
-
-
     @Transactional
     @Override
     public boolean userDeleteById(UserDeleteRequestDto deleteRequestDto) {
@@ -150,7 +143,7 @@ public class UserServiceImpl implements UserService {
             if(userRepository.existsById(deleteRequestDto.getUserId())){
                 User user = userRepository.findById(deleteRequestDto.getUserId()).orElseThrow();
 
-                if(user.getPassword().matches(deleteRequestDto.getPassword())) {
+                if(passwordEncoder.matches(deleteRequestDto.getPassword(), user.getPassword())) {
 
                     boolean isSeller = user.getRoles().stream().anyMatch(role -> role.equals(Role.SELLER));
                     if (isSeller) {
@@ -158,9 +151,8 @@ public class UserServiceImpl implements UserService {
                         sellerDeleteRequestDto.setUserId(deleteRequestDto.getUserId());
                         sellerDeleteRequestDto.setPassword(deleteRequestDto.getPassword());
                         sellerService.deleteSellerById(sellerDeleteRequestDto);
-                    } else {
-                        userRepository.deleteById(deleteRequestDto.getUserId());
                     }
+                    userRepository.deleteById(deleteRequestDto.getUserId());
                     return true;
                 }
 
@@ -173,15 +165,11 @@ public class UserServiceImpl implements UserService {
 
     }
 
-
+    @Transactional
+    @Override
     public void forgetPassword(ForgotPasswordRequestDto forgotPasswordRequestDto){
-        User user = userRepository.findByEmail(forgotPasswordRequestDto.getEmail()).orElseThrow();
-
-        boolean exists = userRepository.existsByEmail(forgotPasswordRequestDto.getEmail());
-
-        if(!exists){
-            throw new RuntimeException("User not found with email: " + forgotPasswordRequestDto.getEmail());
-        }
+        User user = userRepository.findByEmail(forgotPasswordRequestDto.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + forgotPasswordRequestDto.getEmail()));
 
         String otp = String.format("%06d", new Random().nextInt(999999));
 
@@ -195,26 +183,28 @@ public class UserServiceImpl implements UserService {
         otpRepository.save(otpToken);
 
         emailService.sendOtpEmail(forgotPasswordRequestDto.getEmail(), otp, user.getUserName());
-
     }
 
+    @Transactional
+    @Override
     public void resetPassword(ResetPasswordRequestDto resetPasswordRequestDto){
         String userName = resetPasswordRequestDto.getUserName();
         String otp = resetPasswordRequestDto.getOtp();
         String newPassword = resetPasswordRequestDto.getNewPassword();
 
-        OtpToken otpToken = otpRepository.findByUserName(userName).orElseThrow();
+        OtpToken otpToken = otpRepository.findByUserName(userName)
+                .orElseThrow(() -> new RuntimeException("OTP request not found for user: " + userName));
 
         if (otpToken.getExpiryDate().isBefore(LocalDateTime.now())) {
             otpRepository.delete(otpToken);
             throw new RuntimeException("OTP has expired");
         }
 
-        if(!otpToken.getOtp().equals(resetPasswordRequestDto.getOtp())){
+        if(!otpToken.getOtp().equals(otp)){
             throw new RuntimeException("Invalid OTP");
         }
 
-        String encodedPassword = PASSWORD_ENCODER.encode(newPassword);
+        String encodedPassword = passwordEncoder.encode(newPassword);
 
         User user = userRepository.findByuserName(userName).orElse(null);
         if(user!=null) {
@@ -225,20 +215,25 @@ public class UserServiceImpl implements UserService {
         }
 
         otpRepository.delete(otpToken);
-
     }
 
     // helper method
     @Override
     public User getUserByUserId(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow();
-        return user;
+        return userRepository.findById(userId).orElseThrow();
     }
 
     @Override
     public void upgradeUserToSeller(Long userId) {
         User userByUserId = getUserByUserId(userId);
         userByUserId.getRoles().add(Role.SELLER);
+        userRepository.save(userByUserId);
+    }
+
+    @Override
+    public void demoteSeller(Long userId) {
+        User userByUserId = getUserByUserId(userId);
+        userByUserId.getRoles().remove(Role.SELLER);
         userRepository.save(userByUserId);
     }
 

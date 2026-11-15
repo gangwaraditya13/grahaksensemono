@@ -3,14 +3,15 @@ package com.adish.grahaksensemono.Auth.service.Impl;
 import com.adish.grahaksensemono.Auth.entity.RefreshToken;
 import com.adish.grahaksensemono.Auth.repository.RefreshTokenRepository;
 import com.adish.grahaksensemono.Auth.service.RefreshTokenService;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Service
+@Transactional
 public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     @Value("${app.jwt.refresh-expiration-ms}")
@@ -22,10 +23,10 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         this.repo = repo;
     }
 
-    @Transactional
     @Override
     public RefreshToken create(String userName) {
         repo.deleteByuserName(userName);
+        repo.flush();
         RefreshToken rt = new RefreshToken();
         rt.setUserName(userName);
         rt.setToken(UUID.randomUUID().toString());
@@ -35,6 +36,9 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     @Override
     public RefreshToken verify(String token) {
+        if (token == null || token.isBlank()) {
+            throw new RuntimeException("Invalid refresh token");
+        }
         RefreshToken rt = repo.findByToken(token)
                 .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
         if (rt.getExpiryDate().isBefore(Instant.now())) {
@@ -46,6 +50,8 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     @Override
     public void deleteByToken(String refreshToken) {
-        repo.deleteByToken(refreshToken);
+        if (refreshToken != null && !refreshToken.isBlank()) {
+            repo.deleteByToken(refreshToken);
+        }
     }
 }
