@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/Auth")
+@RequestMapping("/auth")
 public class AuthController {
 
     private UserService userService;
