@@ -1,16 +1,19 @@
-FROM maven:3.9.9-eclipse-temurin-25 AS build
+# Build stage
+FROM eclipse-temurin:25-jdk-jammy AS build
 
 WORKDIR /build
 
-COPY grahaksensemono/pom.xml .
-COPY grahaksensemono/.mvn .mvn
-COPY grahaksensemono/mvnw .
+COPY pom.xml .
+COPY .mvn/ .mvn/
+COPY mvnw .
+
 RUN chmod +x mvnw
 
-COPY grahaksensemono/src ./src
+COPY src/ src/
 
 RUN ./mvnw -B clean package -DskipTests
 
+# Runtime stage
 FROM eclipse-temurin:25-jre-jammy
 
 WORKDIR /app
